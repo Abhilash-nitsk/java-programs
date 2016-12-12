@@ -11,6 +11,8 @@ import java.util.TreeMap;
 
 import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
 
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
+
 
 // Class for simulate Each Node of the binary tree
 class TreeNode{
@@ -33,9 +35,9 @@ class MinMax{
 }
 
 //class to use its object so that we can use it as reference
-class LeafLevel{
+class Level{
 	int leafLevel;
-	public LeafLevel(){
+	public Level(){
 		leafLevel=0;
 	}
 }
@@ -682,14 +684,14 @@ public class TreeUtility {
 	public boolean checkLeavesAtSameLevel(TreeNode root){
 		if(root==null)
 			return false;
-		LeafLevel l = new LeafLevel();
+		Level l = new Level();
 		return(checkLeavesAtSameLevelUtil(root,l,1));
 	}
 	
 	
 	
 	//Utility Method to check if all the leaves of the given binary tree are at the same level or not
-	public boolean checkLeavesAtSameLevelUtil(TreeNode root, LeafLevel leaf, int curLevel){
+	public boolean checkLeavesAtSameLevelUtil(TreeNode root, Level leaf, int curLevel){
 		if(root==null)
 			return true;
 		if(isLeaf(root)){
@@ -759,6 +761,185 @@ public class TreeUtility {
 		return null;
 	}
 	
+	//Method to return the list consisting the path from the root to the leaf of the given binary tree
+	public ArrayList<Integer> pathFromRootNode(TreeNode root, TreeNode node){
+		if(root==null)
+			return null;
+		ArrayList<Integer> path = new ArrayList<Integer>();
+		pathFromRootNodeUtil(root, node, path);
+		//System.out.println();
+		return path;
+	}
+	
+	//Utility method for pathFromRootNode(TreeNode root, TreeNode node) 
+	public boolean pathFromRootNodeUtil(TreeNode root, TreeNode node, ArrayList<Integer> path){
+		if(root==null)
+			return true;
+		path.add(root.val);
+		if(root.val== node.val){
+			return true;
+		}
+		if ((root.left!=null&&pathFromRootNodeUtil(root.left, node, path))||(root.right!=null&&pathFromRootNodeUtil(root.right, node, path)))
+			return true;
+		path.remove(path.size()-1);
+		return false;
+		
+	}
+	
+	//Method to return the intersection point between two given linked List (Utility method for the Print LCS Naive approach
+	public int intersectPoint(ArrayList<Integer> A, ArrayList<Integer> B){
+		if(A==null||B==null)
+			return -1;
+		int sizeA = A.size();
+		int sizeB = B.size();
+		int i=0;
+		for(i=0;i<sizeA&&i<sizeB;i++){
+			//System.out.println("A get i"+ A.get(i) + "   B get i: "+B.get(i));
+			if(A.get(i)!=B.get(i)){
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	public int LCSNaive(TreeNode root, TreeNode n1, TreeNode n2){
+		if(root==null)
+			return -1;
+		ArrayList<Integer> path1 = pathFromRootNode(root,n1);
+		ArrayList<Integer> path2 = pathFromRootNode(root,n2);
+		int intersect = intersectPoint(path1,path2);
+		return intersect; 
+	}
+	
+	//Method to find the LCA of the 2 nodes and the root of the given tree efficient way consider both nodes exist in the tree
+	public TreeNode LCAEfficient(TreeNode root, TreeNode n1, TreeNode n2){
+		if(root==null)
+			return root;
+		if(n1==root||n2==root)
+			return root;
+		TreeNode leftLca = LCAEfficient(root.left, n1, n2);
+		TreeNode rightLca = LCAEfficient(root.right, n1, n2);
+		if(leftLca!=null && rightLca!=null)
+			return root;
+		if(leftLca==null)
+			return rightLca;
+		return leftLca;
+	}
+	
+	//Method to return the path length from root to the given node
+	public int pathLenNode(TreeNode root, TreeNode node){
+		if(root==null||node==null)
+			return 0;
+		int level=0;
+		//Level l = new Level();
+		int l=0;
+		int lev = pathLenNodeUtil(root, node,l);
+		System.out.println("The level : "+lev);
+		return lev;
+	}
+	
+	public int pathLenNodeUtil(TreeNode root, TreeNode node, int l){
+		if(root==null)
+			return -1;
+		if(root==node)
+			return l;
+		int lev = pathLenNodeUtil(root.left, node, l+1);
+		if(lev==-1)
+			lev = pathLenNodeUtil(root.right, node, l+1);
+		return lev;
+	}
+	
+	//Method to find the distance between two given nodes
+	public int findDistNodes(TreeNode root, TreeNode t1, TreeNode t2){
+		int llen = pathLenNode(root, t1);
+		int rlen = pathLenNode(root, t2);
+		TreeNode lca = LCAEfficient(root, t1, t2);
+		int lcalen = pathLenNode(root, lca);
+		int d = rlen+llen-(2*lcalen);
+		return d;
+	}
+	
+	//Method to check if the given binary tree is height balanced or not
+	public boolean isHegihtBalanced(TreeNode root){
+		if(root==null)
+			return true;
+		int lh=getHeight(root.left);
+		int rh=getHeight(root.right);
+		if(Math.abs(lh-rh)<=1&&isHegihtBalanced(root.left)&&isHegihtBalanced(root.right))
+			return true;
+		return false;
+	}
+	
+	public void getMinMaxHoriDist(TreeNode root, int dist, MinMax m){
+		if(root==null)
+			return;
+		if(dist>m.max)
+			m.max = dist;
+		if(dist<m.min)
+			m.min = dist;
+		getMinMaxHoriDist(root.left, dist-1, m);
+		getMinMaxHoriDist(root.right, dist+1, m);
+	}
+	public void printVertical(TreeNode root){
+		MinMax m = new MinMax();
+		getMinMaxHoriDist(root, 0, m);
+		for(int i = m.min; i<=m.max;i++){
+			printVerticalUtil(root, i, 0);
+		}
+	}
+	
+	public void printVerticalUtil(TreeNode root, int dist, int curDist){
+		if(root==null)
+			return;
+		if(dist==curDist)
+			System.out.print(root.val+" ");
+		printVerticalUtil(root.left, dist, curDist-1);
+		printVerticalUtil(root.right, dist, curDist+1);
+	}
+	
+	//Method to print the closest leaf in the given binary tree
+	public TreeNode closestLeaf(TreeNode root){
+		if(root==null)
+			return root;
+		TreeNode res=null;
+		Queue<TreeNode> qn = new LinkedList<TreeNode>();
+		Queue<Integer> ql = new LinkedList<Integer>();
+		qn.add(root);
+		ql.add(1);
+		while(!qn.isEmpty()){
+			TreeNode node = qn.poll();
+			int level = ql.poll();
+			if(isLeaf(node)){
+				res = node;
+				break;
+			}
+			if(node.left!=null){
+				qn.add(node.left);
+				ql.add(level+1);
+			}
+			if(node.right!=null){
+				qn.add(node.right);
+				ql.add(level+1);
+			}
+		}
+		return res;
+	}
+	
+	//Method to check if the given two nodes are cousins of each other or not
+	public boolean checkCousins(TreeNode root, TreeNode t1, TreeNode t2){
+		if(root==null)
+			return false;
+		if(root.left==t1&&root.right==t2)
+			return false;
+		int level1 = getLevel(root,t1.val);
+		int level2 = getLevel(root,t2.val);
+		if(level1==level2)
+			return true;
+		return false;
+
+	}
+	
+	
 //---------------------------------------------------------------------------------------------------------------------------------------------	
 	
 	
@@ -789,11 +970,24 @@ public class TreeUtility {
 		TreeUtility obj = new TreeUtility();
 		obj.displayTree(t4);
 		System.out.println();
-		TreeNode res = obj.nextRightNode(t4,1);
+		MinMax m = new MinMax();
+		obj.getMinMaxHoriDist(t4, 0, m);
+		obj.printVertical(t4);
+		System.out.println("The closest leaf is : "+ obj.checkCousins(t4, t1,t2));
+		//System.out.println("The max dist : "+m.max+"   min : "+m.min);
+		//System.out.println("is tree height balanced :  "+obj.isHegihtBalanced(t4));
+		//int lev = obj.findDistNodes(t4, t1, t7);
+		//System.out.println("The Length : "+lev);
+		//ArrayList<Integer> path = new ArrayList<Integer>();
+		//path = obj.pathFromRootNode(t4, t7);
+		//System.out.println(path);
+		//TreeNode intersect = obj.LCAEfficient(t4, t1,t3);
+		//System.out.println("The LCA point : "+intersect.val);
+		/*(TreeNode res = obj.nextRightNode(t4,1);
 		if(res==null)
 			System.out.println("does not exist");
 		else
-			System.out.println("Next Node to the right of the node is  "+ res.val);
+			System.out.println("Next Node to the right of the node is  "+ res.val);*/
 		//System.out.println("The height is : "+obj.heightIter(t2));
 		//System.out.println("Is Isomorphic + "+obj.isIsomorphic(t4,s4));
 		//obj.preorderIter(t4);
