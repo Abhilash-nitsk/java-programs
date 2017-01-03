@@ -939,11 +939,111 @@ public class TreeUtility {
 
 	}
 	
+	//Method to print the top view of the given binary tree
+	public void printTopView(TreeNode root){
+		if(root==null)
+			return;
+		HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
+		printTopViewUtil(root,0,map);
+		System.out.println(map);
+		
+	}
+	
+	//Utility Method to print the top view of the given binary tree
+	public void printTopViewUtil(TreeNode root,int curDist, HashMap<Integer, Integer> map){
+		if(root==null)
+			return;
+		if(!map.containsKey(curDist))
+			map.put(curDist, root.val);
+		printTopViewUtil(root.left, curDist-1, map);
+		printTopViewUtil(root.right, curDist+1, map);
+	}
+	
+	//Method to return the maximum node from the given Binary tree
+	public int getMax(TreeNode root){
+		if(root==null)
+			return 0;
+		int res = root.val;
+		int lmax = getMax(root.left);
+		int rmax = getMax(root.right);
+		if(lmax>res)
+			res = lmax;
+		else if(rmax>res)
+			res = rmax;
+		return res;
+	}
+	
+	//Utility Method to return the maximum value node in a given binary tree
+	public void getMaxUtil(TreeNode root, TreeNode max){
+		if(root==null)
+			return;
+
+		getMaxUtil(root.left,max);
+		getMaxUtil(root.right,max);
+		if(root.val>max.val){
+			max=root;
+		}
+	}
+	
+	//Search an element in the given binary tree iteratively
+	public boolean searchNode(TreeNode root,int d){
+		if(root==null)
+			return false;
+		Queue<TreeNode> q = new LinkedList<TreeNode>();
+		int max = -1;
+		boolean found=false;
+		q.add(root);
+		while(!q.isEmpty()){
+			TreeNode node = q.poll();
+			if(node.val==d){
+				found = true;
+				break;
+			}
+			if(node.left!=null)
+				q.add(node.left);
+			if(node.right!=null)
+				q.add(node.right);
+		}
+		return found;
+	}
+	
+	//Method to return the closest leaf of the given binary tree iteratively
+	public int getClosestLeafIter(TreeNode root){
+		if(root==null)
+			return -1;
+		boolean isLeaf = false;
+		TreeNode closestLeaf =new TreeNode(0);
+		Queue<TreeNode> q = new LinkedList<TreeNode>();
+		q.add(root);
+		while(!q.isEmpty()){
+			TreeNode node = q.poll();
+			if(isLeaf(node)){
+				isLeaf = true;
+				closestLeaf = node;
+				break;
+			}
+			if(node.left!=null)
+				q.add(node.left);
+			if(node.right!=null)
+				q.add(node.right);
+		}
+		if(isLeaf)
+			return closestLeaf.val;
+		else
+			return -1;
+	}
+	
+	//Utility method to return the closest leaf of the given binary tree
+	public int getClosestLeafUtil(TreeNode root, boolean isLeaf, int level){
+		if(root==null)
+			return -1;
+		if(isLeaf)
+			return root.val;
+		return 0;
+	}
+	
 	
 //---------------------------------------------------------------------------------------------------------------------------------------------	
-	
-	
-	
 	
 	//Main Method for the execution of the methods
 	public static void main(String args[]){
@@ -970,10 +1070,13 @@ public class TreeUtility {
 		TreeUtility obj = new TreeUtility();
 		obj.displayTree(t4);
 		System.out.println();
-		MinMax m = new MinMax();
-		obj.getMinMaxHoriDist(t4, 0, m);
-		obj.printVertical(t4);
-		System.out.println("The closest leaf is : "+ obj.checkCousins(t4, t1,t2));
+		System.out.println("The closest leaf is : "+obj.getClosestLeafIter(t4));
+		//System.out.println("Search element  :  " + obj.searchNode(t4, 20));
+		//obj.printTopView(t4);
+		//inMax m = new MinMax();
+		//obj.getMinMaxHoriDist(t4, 0, m);
+		//obj.printVertical(t4);
+		//System.out.println("The closest leaf is : "+ obj.checkCousins(t4, t1,t2));
 		//System.out.println("The max dist : "+m.max+"   min : "+m.min);
 		//System.out.println("is tree height balanced :  "+obj.isHegihtBalanced(t4));
 		//int lev = obj.findDistNodes(t4, t1, t7);
